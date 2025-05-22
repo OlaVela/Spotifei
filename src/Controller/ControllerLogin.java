@@ -10,21 +10,35 @@ import javax.swing.JOptionPane;
 import Model.Usuarios;
 import View.Login;
 import View.Frame;
+import Controller.ControllerMusica;
+
 /**
  * @author Rafael
  */
 
 public class ControllerLogin {
     private Login login;
+    private ControllerMusica ControllerMusica;
+    private String email;
+   
+
+    public String getEmail() { 
+        return login.getEmail().getText();
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
     public ControllerLogin(Login login) {
         this.login = login;
+        this.ControllerMusica = new ControllerMusica();
     }
     
     public void loginUsuario(){
-        Usuarios usuario = new Usuarios(null, 
-                                login.getEmail().getText(),
-                                login.getSenha().getText());
+        ControllerMusica.setEmailatual(getEmail());
+        
+        Usuarios usuario = new Usuarios(null, login.getEmail().getText(), login.getSenha().getText());
         Conexao conexao = new Conexao();
         try{
             Connection conn = conexao.getConnection();
@@ -35,16 +49,10 @@ public class ControllerLogin {
                 frame.setVisible(true);
                 login.setVisible(false);
             } else{
-                JOptionPane.showMessageDialog(login, 
-                                              "Login NÃO efetuado!", 
-                                              "Aviso",
-                                              JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(login,"Login NÃO efetuado!","Aviso",JOptionPane.ERROR_MESSAGE);
             }
         } catch(SQLException e){    
-            JOptionPane.showMessageDialog(login, 
-                                              "Erro de conexão!", 
-                                              "Aviso",
-                                              JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(login,"Erro de conexão!","Aviso",JOptionPane.ERROR_MESSAGE);
         }
     }
 }

@@ -15,7 +15,7 @@ public class UsuariosDAO {
     public UsuariosDAO(Connection conn) {
         this.conn = conn;
     }
-    
+
     public ResultSet consultar(Usuarios usuario) throws SQLException{
         String sql = "select * from usuario where email = ? and senha = ?";
         PreparedStatement statement = conn.prepareStatement(sql);

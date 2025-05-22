@@ -1,9 +1,9 @@
 package View;
 
-
-import controller.ControllerLogin;
+import controller.*;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
+
 /**
  * @author Rafael
  */
@@ -11,6 +11,7 @@ public class Login extends javax.swing.JFrame {
 
     private ControllerLogin LoginController;
     private Login login;
+    
     
     public Login() {
         initComponents();
@@ -23,6 +24,13 @@ public class Login extends javax.swing.JFrame {
 
     public JFormattedTextField getEmail() {
         return email;
+    }
+    
+    public String emaill;
+    
+    
+    public String getemailatual() {
+        return email.getText();
     }
 
     public JTextField getSenha() {
@@ -206,7 +214,8 @@ public class Login extends javax.swing.JFrame {
     }//GEN-LAST:event_emailActionPerformed
 
     private void LOGINActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LOGINActionPerformed
-        LoginController.loginUsuario();
+    LoginController.loginUsuario();
+        
     }//GEN-LAST:event_LOGINActionPerformed
 
     private void senhaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_senhaActionPerformed
