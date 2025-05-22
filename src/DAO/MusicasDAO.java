@@ -208,7 +208,6 @@ public class MusicasDAO {
      * @param dislike
      */
 public void QualLike(String email, String nomemusica, int like, int dislike) {
-    System.out.println(email);
     String consultaExistencia = "SELECT * FROM curtidas WHERE email = ? AND nomemusica = ?";
     boolean existe = false;
     try (PreparedStatement stmtConsulta = conn.prepareStatement(consultaExistencia)) {
@@ -217,7 +216,6 @@ public void QualLike(String email, String nomemusica, int like, int dislike) {
         
         try (ResultSet rs = stmtConsulta.executeQuery()) {
             existe = rs.next();
-            System.out.println(existe);
         }
 
         if (existe == true) {
@@ -230,7 +228,6 @@ public void QualLike(String email, String nomemusica, int like, int dislike) {
                 
                 int linhasAfetadas = stmtUpdate.executeUpdate();
                 if (linhasAfetadas > 0) {
-                    System.out.println("Likes atualizados com sucesso!");
                 } else {
                     System.err.println("Nenhum registro foi atualizado.");
                 }
@@ -244,7 +241,6 @@ public void QualLike(String email, String nomemusica, int like, int dislike) {
                 stmtInsert.setInt(4, dislike);
                 int linhasAfetadas = stmtInsert.executeUpdate();
                 if (linhasAfetadas > 0) {
-                    System.out.println("Novo registro de likes inserido com sucesso!");
                 }
             }
         }
@@ -350,10 +346,214 @@ public List<String> getMusicasDescurtidas(String email) {
     return musicasDescurtidas;
 }
 //================================================================
-//                   Criar Playlist
+//                      Criar Playlist
 //================================================================
 
+public boolean criarPlaylist(String email, String nomePlaylist) {
+    String parametro = "INSERT INTO playlist (email, nomeplaylist, musica) VALUES (?, ?, '')";
+    
+    try (PreparedStatement resultado = conn.prepareStatement( parametro)) {
+        resultado.setString(1, email);
+        resultado.setString(2, nomePlaylist);
+        
+        int linhasAfetadas = resultado.executeUpdate();
+        return linhasAfetadas > 0;
+    } catch (SQLException e) {
+        System.err.println("Erro ao criar playlist: " + e.getMessage());
+        return false;
+    }
+}
+//================================================================
+//                   Adicionar a Playlist
+//================================================================
 
+public boolean adicionarMusicaPlaylist(String email, String nomePlaylist, String nomemusica) {
+    String parametro = "INSERT INTO playlist (email, nomeplaylist, musica) VALUES (?, ?, ?)";
+    
+    try (PreparedStatement onde = conn.prepareStatement(parametro)) {
+        onde.setString(1, email);
+        onde.setString(2, nomePlaylist);
+        onde.setString(3, nomemusica);
+        
+        int linhasAfetadas = onde.executeUpdate();
+        return linhasAfetadas > 0;
+    } catch (SQLException e) {
+        System.err.println("Erro ao adicionar música: " + e.getMessage());
+        return false;
+    }
+}
+//================================================================
+//                    Remover da Playlist
+//================================================================
+
+public boolean removerMusicaPlaylist(String email, String nomePlaylist, String musica) {
+    String parametro = "DELETE FROM playlist WHERE email = ? AND nomeplaylist = ? AND musica = ?";
+    
+    try (PreparedStatement onde = conn.prepareStatement(parametro)) {
+        onde.setString(1, email);
+        onde.setString(2, nomePlaylist);
+        onde.setString(3, musica);
+        
+        int linhasAfetadas = onde.executeUpdate();
+        return linhasAfetadas > 0;
+    } catch (SQLException e) {
+        System.err.println("Erro ao remover música: " + e.getMessage());
+        return false;
+    }
+}
+
+//================================================================
+//                  Listar todas as Playlist
+//================================================================
+public List<String> listarPlaylistsUsuario(String email) {
+    List<String> playlists = new ArrayList<>();
+    String parametro = "SELECT DISTINCT nomeplaylist FROM playlist WHERE email = ?";
+    
+    try (PreparedStatement onde = conn.prepareStatement(parametro)) {
+        onde.setString(1, email);
+        
+        try (ResultSet Resultado = onde.executeQuery()) {
+            while (Resultado.next()) {
+                playlists.add(Resultado.getString("nomeplaylist"));
+            }
+        }
+    } catch (SQLException e) {
+        System.err.println("Erro ao listar playlists: " + e.getMessage());
+    }
+    return playlists;
+}
+//================================================================
+//                Listar Musicas da Playlist
+//================================================================
+public List<String> listarMusicasPlaylist(String email, String nomePlaylist) {
+    List<String> musicas = new ArrayList<>();
+    String parametro = "SELECT musica FROM playlist WHERE email = ? AND nomeplaylist = ? AND musica != ''";
+    
+    try (PreparedStatement onde = conn.prepareStatement(parametro)) {
+        onde.setString(1, email);
+        onde.setString(2, nomePlaylist);
+        
+        try (ResultSet Resultado = onde.executeQuery()) {
+            while (Resultado.next()) {
+                musicas.add(Resultado.getString("musica"));
+            }
+        }
+    } catch (SQLException e) {
+        System.err.println("Erro ao listar músicas: " + e.getMessage());
+    }
+    
+    return musicas;
+}
+//================================================================
+//                   Renomear Playlist
+//================================================================
+    public boolean renomearPlaylist(String email, String nomeAtual, String novoNome) {
+        String sqlVerifica = "SELECT COUNT(*) FROM playlist WHERE email = ? AND nomeplaylist = ?";
+        String sqlAtualiza = "UPDATE playlist SET nomeplaylist = ? WHERE email = ? AND nomeplaylist = ?";
+        try (PreparedStatement stmtVerifica = conn.prepareStatement(sqlVerifica);
+             PreparedStatement stmtAtualiza = conn.prepareStatement(sqlAtualiza)) {  
+            stmtVerifica.setString(1, email);
+            stmtVerifica.setString(2, novoNome);
+            ResultSet rs = stmtVerifica.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0) {
+                System.err.println("Já existe uma playlist com esse nome!");
+                return false;
+            }
+            stmtAtualiza.setString(1, novoNome);
+            stmtAtualiza.setString(2, email);
+            stmtAtualiza.setString(3, nomeAtual);
+            int linhasAfetadas = stmtAtualiza.executeUpdate();
+            return linhasAfetadas > 0;
+        } catch (SQLException e) {
+            System.err.println("Erro ao renomear playlist: " + e.getMessage());
+            return false;
+        }
+    }
+//================================================================
+//                     Remover Playlist
+//================================================================    
+    public void deletarPlaylist(String email, String nomePlaylist) {
+        String parametro = "DELETE FROM playlist WHERE email = ? AND nomeplaylist = ?";
+        try (PreparedStatement onde = conn.prepareStatement(parametro)) {
+
+            onde.setString(1, email);
+            onde.setString(2, nomePlaylist);
+
+            int linhasAfetadas = onde.executeUpdate();
+
+            if (linhasAfetadas > 0) {
+            } else {
+                System.err.println("Playlist não encontrada ou vazia");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Erro ao deletar playlist: " + e.getMessage());
+        }
+    }
+//================================================================
+//                  Criar Historico de Musica
+//================================================================ 
+    
+public void adicionarMusicaAoHistorico(String email, String musica) {
+    String parametroBusca = "SELECT ultima FROM ultimasmusicas WHERE email = ?";
+    String parametroInsere = "INSERT INTO ultimasmusicas (email, ultima, m1) VALUES (?, 1, ?)";
+    
+    try (PreparedStatement ondeBusca = conn.prepareStatement(parametroBusca);
+         PreparedStatement ondeInsere = conn.prepareStatement(parametroInsere);){
+        
+        ondeBusca.setString(1, email);
+        
+        try (ResultSet resultado = ondeBusca.executeQuery()) {
+            if (resultado.next()) {
+                int ultimaPosicao = resultado.getInt("ultima");
+                int proximaPosicao = (ultimaPosicao % 10) + 1;
+                
+                String parametroAtualiza = "UPDATE ultimasmusicas SET ultima = " + proximaPosicao + 
+                                                         ", m" + proximaPosicao + " = ? WHERE email = ?";   
+                
+                try (PreparedStatement ondeAtualiza = conn.prepareStatement(parametroAtualiza)){
+                    ondeAtualiza.setString(1, musica);
+                    ondeAtualiza.setString(2, email);
+                    ondeAtualiza.executeUpdate();
+                }                
+
+            } else {
+                ondeInsere.setString(1, email);
+                ondeInsere.setString(2, musica);
+                ondeInsere.executeUpdate();
+            }
+        }
+    } catch (SQLException e) {
+        System.err.println("Erro ao atualizar histórico: " + e.getMessage());
+    }
+}    
+//================================================================
+//                  Listar Historico de Musica
+//================================================================  
+
+public List<String> listarHistoricoMusicas(String email) {
+    List<String> historico = new ArrayList<>();
+    String parametro = "SELECT ultima, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10 FROM ultimasmusicas WHERE email = ?";
+    
+    try (PreparedStatement onde = conn.prepareStatement(parametro)) {  
+        onde.setString(1, email);
+        try (ResultSet resultado = onde.executeQuery()) {
+            if (resultado.next()) {
+                int ultimaPosicao = resultado.getInt("ultima");
+                for (int i = 0; i < 10; i++) {
+                    int posicao = (ultimaPosicao - i + 9) % 10 + 1;
+                    String musica = resultado.getString("m" + posicao);
+                    if (musica != null && !musica.isEmpty()) {
+                        historico.add(musica);
+                    }
+                }
+            }
+        }
+    } catch (SQLException e) {
+        System.err.println("Erro ao buscar histórico: " + e.getMessage());
+    }
+    return historico;
+}
 //================================================================
 //                Inserir todas as musicas
 //================================================================ 
@@ -396,7 +596,6 @@ public List<String> getMusicasDescurtidas(String email) {
                 onde.setString(4, musica[3]); // descrição
                 onde.executeUpdate();
             }
-            System.out.println("20 músicas inseridas com sucesso!");
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao inserir músicas de exemplo", e);
         }

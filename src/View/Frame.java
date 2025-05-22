@@ -22,17 +22,24 @@ public class Frame extends javax.swing.JFrame {
     public ControllerMusica controllerMusica;
 
     DefaultListModel defaultListModel = new DefaultListModel();
+    DefaultListModel Listaplaylist = new DefaultListModel();
+    DefaultListModel ListaMusicas = new DefaultListModel();
     public String estilo;
-    String[] vazio ={""};
-    
+    String[] vazio = {""};
+
     public Frame() {
         initComponents();
         this.controllerMusica = new ControllerMusica();
+        this.Listaplaylist = new DefaultListModel();
+        this.ListaMusicas = new DefaultListModel();
         this.setarListaM("Todos");
+        this.setListaPlaylists();
+        this.setListaPlaylistsMusicas();
     }
 //================================================================
 //                        Getes e setes
 //================================================================    
+
     public void setNomeTexto(String NomeTexto) {
         this.NomeTexto.setText(NomeTexto);
     }
@@ -48,10 +55,11 @@ public class Frame extends javax.swing.JFrame {
     public void setTextNomeArtista(String selecionado) {
         this.TextNomeArtista.setText(selecionado);
     }
+
     public void setListaM(JList<String> ListaM) {
         this.ListaM = ListaM;
     }
-    
+
     public JList<String> getListaM() {
         return ListaM;
     }
@@ -63,17 +71,26 @@ public class Frame extends javax.swing.JFrame {
     public boolean getCurtir() {
         return curtir.isSelected();
     }
-    
-    private void setarListaM(String selecionado) {
+
+    public void listarHistoricoMusicas() {
         defaultListModel.clear();
-        String estilo = (String) Estilo.getText();
-        List<String> a = controllerMusica.pesquisarMusicas(estilo,selecionado);
+        List<String> a = controllerMusica.listarHistoricoMusicas();
         for (String i : a) {
             defaultListModel.addElement(i);
         }
         ListaM.setModel(defaultListModel);
     }
-    
+
+    private void setarListaM(String selecionado) {
+        defaultListModel.clear();
+        String estilo = (String) Estilo.getText();
+        List<String> a = controllerMusica.pesquisarMusicas(estilo, selecionado);
+        for (String i : a) {
+            defaultListModel.addElement(i);
+        }
+        ListaM.setModel(defaultListModel);
+    }
+
     private void setarListaMDescurtidas() {
         defaultListModel.clear();
         List<String> a = controllerMusica.getMDescurtidas();
@@ -82,7 +99,7 @@ public class Frame extends javax.swing.JFrame {
         }
         ListaM.setModel(defaultListModel);
     }
-    
+
     private void setarListaMCurtidas() {
         defaultListModel.clear();
         List<String> a = controllerMusica.getMCurtidas();
@@ -91,28 +108,40 @@ public class Frame extends javax.swing.JFrame {
         }
         ListaM.setModel(defaultListModel);
     }
+
+    private void setListaPlaylists() {
+        Listaplaylist.clear();
+        List<String> a = controllerMusica.getListaPlaylists();
+        for (String i : a) {
+            Listaplaylist.addElement(i);
+        }
+        ListaPlaylist.setModel(Listaplaylist);
+    }
+
+    private void setListaPlaylistsMusicas() {
+        ListaMusicas.clear();
+        String nomePlaylist = (String) ListaPlaylist.getSelectedValue();
+        List<String> a = controllerMusica.getListaMusicasPlaylist(nomePlaylist);
+        for (String i : a) {
+            ListaMusicas.addElement(i);
+        }
+        MusicasPlaylist.setModel(ListaMusicas);
+    }
+
 //================================================================
 //              Coloca Nome Imagem e descrição
 //================================================================
-    private void MusicaSelecionada() {
-        String selecionado = (String) ListaM.getSelectedValue();
+    private void MusicaSelecionada(JList<String> lista) {
+        String selecionado = (String) lista.getSelectedValue();
+        controllerMusica.adicionarMusicaAoHistorico(selecionado);
         if (selecionado != null) {
-            //================================================================
-            //                  Muda pro nome da musica
-            //================================================================
-            System.out.println("Música selecionada: " + selecionado);
+
             setNomeTexto(selecionado);
-            //================================================================
-            //                         Linpa icone
-            //================================================================
+
             Foto.setIcon(null);
-            //================================================================
-            //               Define o caminho correto da imagem
-            //================================================================
+
             String caminhoImagem = "/View/" + selecionado.toLowerCase().replace(" ", "_") + ".png";
-            //================================================================
-            //                     Carrega a imagem
-            //================================================================
+
             try {
                 // Usa getResource() para carregar do classpath
                 java.net.URL imgURL = getClass().getResource(caminhoImagem);
@@ -130,24 +159,24 @@ public class Frame extends javax.swing.JFrame {
                 Foto.setIcon(null);
                 Foto.setText("Erro ao carregar");
             }
-            setDescricao(controllerMusica.Descricao(ListaM.getSelectedValue()));
-            setTextNomeArtista(controllerMusica.Artista(ListaM.getSelectedValue()));
-            setGenero(controllerMusica.Genero(ListaM.getSelectedValue()));
+            setDescricao(controllerMusica.Descricao(lista.getSelectedValue()));
+            setTextNomeArtista(controllerMusica.Artista(lista.getSelectedValue()));
+            setGenero(controllerMusica.Genero(lista.getSelectedValue()));
             curtir.setSelected(false);
             descurti.setSelected(false);
-            int varD = (int) controllerMusica.DeslikeChecar(ListaM.getSelectedValue());
-                if(varD == 1){
-                    descurti.setSelected(true);
-                    curtir.setSelected(false);
-                }
-            int varC = (int) controllerMusica.likesChecar(ListaM.getSelectedValue());    
-                if(varC == 1){
-                    descurti.setSelected(false);
-                    curtir.setSelected(true);                    
-                }
-        }  
+            int varD = (int) controllerMusica.DeslikeChecar(lista.getSelectedValue());
+            if (varD == 1) {
+                descurti.setSelected(true);
+                curtir.setSelected(false);
+            }
+            int varC = (int) controllerMusica.likesChecar(lista.getSelectedValue());
+            if (varC == 1) {
+                descurti.setSelected(false);
+                curtir.setSelected(true);
+            }
+        }
     }
-    
+
 //================================================================
 //              Barra leteral (Todos,Nome,artista,Genero)
 //================================================================
@@ -155,56 +184,86 @@ public class Frame extends javax.swing.JFrame {
         String estilo = (String) Estilo.getText();
         String tipopesquisa = (String) TipoPesquisa.getSelectedItem();
         if (tipopesquisa != null) {
-            System.out.println("Item selecionado: " + tipopesquisa);
             if ("Todos".equals(tipopesquisa)) {
-                System.out.println(estilo);
                 setarListaM("Todos");
             }
             if ("Nome".equals(tipopesquisa)) {
-                System.out.println(estilo);
                 setarListaM("Nome");
             }
             if ("Artista".equals(tipopesquisa)) {
-                System.out.println(estilo);
                 setarListaM("Artista");
             }
             if ("Gênero".equals(tipopesquisa)) {
-                System.out.println(estilo);
                 setarListaM("Gênero");
             }
             if ("Curtidas".equals(tipopesquisa)) {
-                System.out.println("Curtidas lista");
                 setarListaMCurtidas();
             }
             if ("Descurtidas".equals(tipopesquisa)) {
-                System.out.println("Descurtidas lista");
                 setarListaMDescurtidas();
-            }            
+            }
+            if ("Historico".equals(tipopesquisa)) {
+                listarHistoricoMusicas();
+            }
         }
     }
+
 //================================================================
 //                      Like e Deslike
 //================================================================
-    public void likes(){
+    public void likes() {
         String selected = (String) ListaM.getSelectedValue();
-        if(getCurtir() == true){
+        if (getCurtir() == true) {
             controllerMusica.LikesDeslikes(selected, 1, 0);
             descurti.setSelected(false);
-        }
-        else{
+        } else {
             controllerMusica.LikesDeslikes(selected, 0, 0);
         }
     }
-    public void Deslike(){
+
+    public void Deslike() {
         String selected = (String) ListaM.getSelectedValue();
-        if(getDescurti() == true){
+        if (getDescurti() == true) {
             controllerMusica.LikesDeslikes(selected, 0, 1);
             curtir.setSelected(false);
-        }
-        else{
+        } else {
             controllerMusica.LikesDeslikes(selected, 0, 0);
-        } 
+        }
     }
+//================================================================
+//                         Playlists
+//================================================================    
+
+    public void criarPlaylist() {
+        String nomePlaylist = (String) playlistnome.getText();
+        controllerMusica.criarPlaylist(nomePlaylist);
+        playlistnome.setText("");
+    }
+
+    public void adicionarMusicaPlaylist() {
+        String nomePlaylist = (String) ListaPlaylist.getSelectedValue();
+        String nomemusica = (String) ListaM.getSelectedValue();
+        controllerMusica.adicionarMusicaPlaylist(nomePlaylist, nomemusica);
+    }
+
+    public void removerMusicaPlaylist() {
+        String nomePlaylist = (String) ListaPlaylist.getSelectedValue();
+        String nomemusica = (String) MusicasPlaylist.getSelectedValue();
+        controllerMusica.removerMusicaPlaylist(nomePlaylist, nomemusica);
+    }
+
+    public void renomearPlaylist() {
+        String novoNome = (String) playlistnome.getText();
+        String nomeAtual = (String) ListaPlaylist.getSelectedValue();
+        controllerMusica.renomearPlaylist(nomeAtual, novoNome);
+    }
+
+    public void deletarPlaylist() {
+        String nomePlaylist = (String) ListaPlaylist.getSelectedValue();
+        controllerMusica.deletarPlaylist(nomePlaylist);
+    }
+
+
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -225,6 +284,8 @@ public class Frame extends javax.swing.JFrame {
         jScrollPane2 = new javax.swing.JScrollPane();
         jList2 = new javax.swing.JList<>();
         buttonGroup1 = new javax.swing.ButtonGroup();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         ListaM = new javax.swing.JList<>();
@@ -233,8 +294,8 @@ public class Frame extends javax.swing.JFrame {
         Foto = new javax.swing.JLabel();
         NomeTexto = new javax.swing.JTextField();
         curtir = new javax.swing.JCheckBox();
-        jButton2 = new javax.swing.JButton();
-        jButton5 = new javax.swing.JButton();
+        AdicionarAPlayList = new javax.swing.JButton();
+        RemoverDaPlayList = new javax.swing.JButton();
         Descricao = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         Genero = new javax.swing.JLabel();
@@ -243,17 +304,18 @@ public class Frame extends javax.swing.JFrame {
         TextNomeArtista = new javax.swing.JLabel();
         descurti = new javax.swing.JCheckBox();
         Estilo = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        Ok = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
-        ListaM1 = new javax.swing.JList<>();
-        Estilo1 = new javax.swing.JTextField();
+        ListaPlaylist = new javax.swing.JList<>();
+        playlistnome = new javax.swing.JTextField();
         jScrollPane4 = new javax.swing.JScrollPane();
-        ListaM2 = new javax.swing.JList<>();
+        MusicasPlaylist = new javax.swing.JList<>();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        jButton3 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
+        criar = new javax.swing.JButton();
+        deleta = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
+        Renomear = new javax.swing.JButton();
 
         jButton28.setText("jButton3");
 
@@ -301,11 +363,15 @@ public class Frame extends javax.swing.JFrame {
         });
         jScrollPane2.setViewportView(jList2);
 
+        jTextArea1.setColumns(20);
+        jTextArea1.setRows(5);
+        jScrollPane5.setViewportView(jTextArea1);
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(0, 0, 0));
-        setMaximumSize(new java.awt.Dimension(854, 456));
-        setMinimumSize(new java.awt.Dimension(854, 456));
-        setPreferredSize(new java.awt.Dimension(900, 500));
+        setMaximumSize(new java.awt.Dimension(930, 500));
+        setMinimumSize(new java.awt.Dimension(930, 500));
+        setPreferredSize(new java.awt.Dimension(930, 500));
         setResizable(false);
 
         jPanel1.setBackground(new java.awt.Color(0, 0, 0));
@@ -321,8 +387,8 @@ public class Frame extends javax.swing.JFrame {
         TipoPesquisa.setBackground(new java.awt.Color(78, 78, 78));
         TipoPesquisa.setFont(new java.awt.Font("Segoe UI Black", 1, 12)); // NOI18N
         TipoPesquisa.setForeground(java.awt.Color.white);
-        TipoPesquisa.setMaximumRowCount(4);
-        TipoPesquisa.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Todos", "Nome", "Artista", "Gênero", "Curtidas", "Descurtidas" }));
+        TipoPesquisa.setMaximumRowCount(6);
+        TipoPesquisa.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Todos", "Nome", "Artista", "Gênero", "Curtidas", "Descurtidas", "Historico" }));
         TipoPesquisa.setToolTipText("");
         TipoPesquisa.setBorder(null);
         TipoPesquisa.setMaximumSize(new java.awt.Dimension(81, 23));
@@ -356,23 +422,23 @@ public class Frame extends javax.swing.JFrame {
             }
         });
 
-        jButton2.setBackground(new java.awt.Color(255, 255, 255));
-        jButton2.setForeground(new java.awt.Color(0, 0, 0));
-        jButton2.setText("Adicionar A PlayList");
-        jButton2.setBorder(null);
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        AdicionarAPlayList.setBackground(new java.awt.Color(255, 255, 255));
+        AdicionarAPlayList.setForeground(new java.awt.Color(0, 0, 0));
+        AdicionarAPlayList.setText("Adicionar A PlayList");
+        AdicionarAPlayList.setBorder(null);
+        AdicionarAPlayList.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                AdicionarAPlayListActionPerformed(evt);
             }
         });
 
-        jButton5.setBackground(new java.awt.Color(255, 255, 255));
-        jButton5.setForeground(new java.awt.Color(0, 0, 0));
-        jButton5.setText("Remover da PlayList");
-        jButton5.setBorder(null);
-        jButton5.addActionListener(new java.awt.event.ActionListener() {
+        RemoverDaPlayList.setBackground(new java.awt.Color(255, 255, 255));
+        RemoverDaPlayList.setForeground(new java.awt.Color(0, 0, 0));
+        RemoverDaPlayList.setText("Remover da PlayList");
+        RemoverDaPlayList.setBorder(null);
+        RemoverDaPlayList.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton5ActionPerformed(evt);
+                RemoverDaPlayListActionPerformed(evt);
             }
         });
 
@@ -434,8 +500,8 @@ public class Frame extends javax.swing.JFrame {
                                     .addComponent(curtir)
                                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                        .addComponent(AdicionarAPlayList, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(RemoverDaPlayList, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)))
                                 .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel3Layout.createSequentialGroup()
                                     .addGap(27, 27, 27)
                                     .addComponent(Descricao, javax.swing.GroupLayout.PREFERRED_SIZE, 354, javax.swing.GroupLayout.PREFERRED_SIZE))))
@@ -460,13 +526,13 @@ public class Frame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel6)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(Descricao, javax.swing.GroupLayout.DEFAULT_SIZE, 149, Short.MAX_VALUE)
+                .addComponent(Descricao, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(7, 7, 7)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(AdicionarAPlayList, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(RemoverDaPlayList, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addGap(22, 22, 22)
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -483,46 +549,49 @@ public class Frame extends javax.swing.JFrame {
             }
         });
 
-        jButton1.setBackground(new java.awt.Color(255, 255, 255));
-        jButton1.setForeground(new java.awt.Color(0, 0, 0));
-        jButton1.setText("Ok");
-        jButton1.setBorder(null);
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        Ok.setBackground(new java.awt.Color(255, 255, 255));
+        Ok.setForeground(new java.awt.Color(0, 0, 0));
+        Ok.setText("Ok");
+        Ok.setBorder(null);
+        Ok.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                OkActionPerformed(evt);
             }
         });
 
-        ListaM1.setModel(new javax.swing.AbstractListModel<String>() {
+        ListaPlaylist.setModel(new javax.swing.AbstractListModel<String>() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
         });
-        ListaM1.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+        ListaPlaylist.setPreferredSize(new java.awt.Dimension(0, 0));
+        ListaPlaylist.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                ListaM1ValueChanged(evt);
+                ListaPlaylistValueChanged(evt);
             }
         });
-        jScrollPane3.setViewportView(ListaM1);
+        jScrollPane3.setViewportView(ListaPlaylist);
 
-        Estilo1.setToolTipText("");
-        Estilo1.addActionListener(new java.awt.event.ActionListener() {
+        playlistnome.setToolTipText("");
+        playlistnome.setPreferredSize(new java.awt.Dimension(207, 22));
+        playlistnome.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                Estilo1ActionPerformed(evt);
+                playlistnomeActionPerformed(evt);
             }
         });
 
-        ListaM2.setModel(new javax.swing.AbstractListModel<String>() {
+        MusicasPlaylist.setModel(new javax.swing.AbstractListModel<String>() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
         });
-        ListaM2.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+        MusicasPlaylist.setPreferredSize(new java.awt.Dimension(0, 0));
+        MusicasPlaylist.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                ListaM2ValueChanged(evt);
+                MusicasPlaylistValueChanged(evt);
             }
         });
-        jScrollPane4.setViewportView(ListaM2);
+        jScrollPane4.setViewportView(MusicasPlaylist);
 
         jLabel1.setFont(new java.awt.Font("Segoe UI Black", 1, 18)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -532,23 +601,23 @@ public class Frame extends javax.swing.JFrame {
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel2.setText("Musicas Playlist");
 
-        jButton3.setBackground(new java.awt.Color(255, 255, 255));
-        jButton3.setForeground(new java.awt.Color(0, 0, 0));
-        jButton3.setText("Criar");
-        jButton3.setBorder(null);
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        criar.setBackground(new java.awt.Color(255, 255, 255));
+        criar.setForeground(new java.awt.Color(0, 0, 0));
+        criar.setText("Criar");
+        criar.setBorder(null);
+        criar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                criarActionPerformed(evt);
             }
         });
 
-        jButton4.setBackground(new java.awt.Color(255, 255, 255));
-        jButton4.setForeground(new java.awt.Color(0, 0, 0));
-        jButton4.setText("Deletar");
-        jButton4.setBorder(null);
-        jButton4.addActionListener(new java.awt.event.ActionListener() {
+        deleta.setBackground(new java.awt.Color(255, 255, 255));
+        deleta.setForeground(new java.awt.Color(0, 0, 0));
+        deleta.setText("Deletar");
+        deleta.setBorder(null);
+        deleta.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton4ActionPerformed(evt);
+                deletaActionPerformed(evt);
             }
         });
 
@@ -556,14 +625,23 @@ public class Frame extends javax.swing.JFrame {
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel3.setText("PlayListis");
 
+        Renomear.setBackground(new java.awt.Color(255, 255, 255));
+        Renomear.setForeground(new java.awt.Color(0, 0, 0));
+        Renomear.setText("Renomear");
+        Renomear.setBorder(null);
+        Renomear.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                RenomearActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(24, 24, 24)
+                .addGap(35, 35, 35)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 175, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
@@ -571,58 +649,61 @@ public class Frame extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(Estilo, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(Ok, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 204, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 411, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGap(18, 18, 18)
+                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 411, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 175, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jScrollPane3)
-                    .addComponent(jScrollPane4)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(Estilo1)
-                            .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, 204, Short.MAX_VALUE))
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addGap(18, 18, 18))
+                        .addComponent(Renomear, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(playlistnome, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE))
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
+                            .addGap(1, 1, 1)
+                            .addComponent(criar, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(deleta, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 208, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane4)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(36, 36, 36))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(27, 27, 27)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(criar, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(deleta, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(12, 12, 12)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(Estilo1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(playlistnome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(Renomear, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane4))
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 171, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(TipoPesquisa, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(Estilo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(Ok, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(TipoPesquisa, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(Estilo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 354, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                .addGap(21, 21, 21))
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 343, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(47, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -633,96 +714,111 @@ public class Frame extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void ListaMValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_ListaMValueChanged
-        MusicaSelecionada();
+        if (!evt.getValueIsAdjusting()) {
+            MusicaSelecionada(ListaM);
+        }
     }//GEN-LAST:event_ListaMValueChanged
 
     private void TipoPesquisaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TipoPesquisaActionPerformed
-    //  Barra leteral (Todos,Nome,artista,Genero,Curtidas,Descurtidas)
+        //  Barra leteral (Todos,Nome,artista,Genero,Curtidas,Descurtidas)
     }//GEN-LAST:event_TipoPesquisaActionPerformed
 
     private void EstiloActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_EstiloActionPerformed
-      
+
     }//GEN-LAST:event_EstiloActionPerformed
 
     private void NomeTextoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_NomeTextoActionPerformed
 
     }//GEN-LAST:event_NomeTextoActionPerformed
-        //Botão Pesquisar
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+
+    private void OkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_OkActionPerformed
         TipoDeMusicaSelecionada();
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_OkActionPerformed
 
-    private void ListaM1ValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_ListaM1ValueChanged
-        // TODO add your handling code here:
-    }//GEN-LAST:event_ListaM1ValueChanged
+    private void ListaPlaylistValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_ListaPlaylistValueChanged
+        if (!evt.getValueIsAdjusting()) {
+            setListaPlaylistsMusicas();
+        }
+    }//GEN-LAST:event_ListaPlaylistValueChanged
 
-    private void Estilo1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Estilo1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_Estilo1ActionPerformed
+    private void playlistnomeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_playlistnomeActionPerformed
+        setListaPlaylistsMusicas();
+    }//GEN-LAST:event_playlistnomeActionPerformed
 
-    private void ListaM2ValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_ListaM2ValueChanged
-        // TODO add your handling code here:
-    }//GEN-LAST:event_ListaM2ValueChanged
+    private void MusicasPlaylistValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_MusicasPlaylistValueChanged
+        if (!evt.getValueIsAdjusting()) {
+            MusicaSelecionada(MusicasPlaylist);
+        }
+    }//GEN-LAST:event_MusicasPlaylistValueChanged
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-   
-    }//GEN-LAST:event_jButton2ActionPerformed
+    private void AdicionarAPlayListActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AdicionarAPlayListActionPerformed
+        adicionarMusicaPlaylist();
+        setListaPlaylistsMusicas();
+    }//GEN-LAST:event_AdicionarAPlayListActionPerformed
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton3ActionPerformed
+    private void criarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_criarActionPerformed
+        criarPlaylist();
+        setListaPlaylists();
+    }//GEN-LAST:event_criarActionPerformed
 
     private void curtirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_curtirActionPerformed
-              likes();
+        likes();
     }//GEN-LAST:event_curtirActionPerformed
 
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton4ActionPerformed
+    private void deletaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deletaActionPerformed
+        deletarPlaylist();
+        setListaPlaylists();
+    }//GEN-LAST:event_deletaActionPerformed
 
-    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton5ActionPerformed
+    private void RemoverDaPlayListActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RemoverDaPlayListActionPerformed
+        removerMusicaPlaylist();
+        setListaPlaylistsMusicas();
+    }//GEN-LAST:event_RemoverDaPlayListActionPerformed
 
     private void descurtiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_descurtiActionPerformed
-            Deslike();
+        Deslike();
     }//GEN-LAST:event_descurtiActionPerformed
+
+    private void RenomearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RenomearActionPerformed
+        renomearPlaylist();
+        setListaPlaylists();
+    }//GEN-LAST:event_RenomearActionPerformed
 
     /**
      * @param args the command line arguments
      */
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton AdicionarAPlayList;
     private javax.swing.JLabel Descricao;
     private javax.swing.JTextField Estilo;
-    private javax.swing.JTextField Estilo1;
     private javax.swing.JLabel Foto;
     private javax.swing.JLabel Genero;
     private javax.swing.JList<String> ListaM;
-    private javax.swing.JList<String> ListaM1;
-    private javax.swing.JList<String> ListaM2;
+    private javax.swing.JList<String> ListaPlaylist;
+    private javax.swing.JList<String> MusicasPlaylist;
     private javax.swing.JTextField NomeTexto;
+    private javax.swing.JButton Ok;
+    private javax.swing.JButton RemoverDaPlayList;
+    private javax.swing.JButton Renomear;
     private javax.swing.JLabel TextNomeArtista;
     private javax.swing.JComboBox<String> TipoPesquisa;
     private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.JButton criar;
     private javax.swing.JCheckBox curtir;
+    private javax.swing.JButton deleta;
     private javax.swing.JCheckBox descurti;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton26;
     private javax.swing.JButton jButton27;
     private javax.swing.JButton jButton28;
     private javax.swing.JButton jButton29;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
     private javax.swing.JInternalFrame jInternalFrame1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -737,6 +833,8 @@ public class Frame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JTextArea jTextArea1;
     private java.awt.Menu menu1;
     private java.awt.Menu menu2;
     private java.awt.Menu menu3;
@@ -746,5 +844,6 @@ public class Frame extends javax.swing.JFrame {
     private java.awt.MenuBar menuBar1;
     private java.awt.MenuBar menuBar2;
     private java.awt.MenuBar menuBar3;
+    private javax.swing.JTextField playlistnome;
     // End of variables declaration//GEN-END:variables
 }
