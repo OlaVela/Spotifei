@@ -11,9 +11,13 @@ import Model.*;
  * @author Rafael
  */
 public class ControllerCadastro {
-
+    
     private Cadastro cadastro;
 
+    /**
+     *
+     * @param cadastro
+     */
     public ControllerCadastro(Cadastro cadastro) {
         this.cadastro = cadastro;
     }

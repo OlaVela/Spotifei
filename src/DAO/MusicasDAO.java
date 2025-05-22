@@ -310,6 +310,12 @@ public void QualLike(String email, String nomemusica, int like, int dislike) {
 //================================================================
 //                   listas like deslike
 //================================================================
+
+    /**
+     *
+     * @param email
+     * @return
+     */
 public List<String> getMusicasCurtidas(String email) {
     List<String> musicasCurtidas = new ArrayList<>();
     String parametro = "SELECT nomemusica FROM curtidas WHERE email = ? AND \"like\" = 1";
@@ -328,7 +334,12 @@ public List<String> getMusicasCurtidas(String email) {
     return musicasCurtidas;
 }
 
-public List<String> getMusicasDescurtidas(String email) {
+    /**
+     *
+     * @param email
+     * @return
+     */
+    public List<String> getMusicasDescurtidas(String email) {
     List<String> musicasDescurtidas = new ArrayList<>();
     String parametro = "SELECT nomemusica FROM curtidas WHERE email = ? AND deslike = 1";
     
@@ -349,7 +360,13 @@ public List<String> getMusicasDescurtidas(String email) {
 //                      Criar Playlist
 //================================================================
 
-public boolean criarPlaylist(String email, String nomePlaylist) {
+    /**
+     *
+     * @param email
+     * @param nomePlaylist
+     * @return
+     */
+    public boolean criarPlaylist(String email, String nomePlaylist) {
     String parametro = "INSERT INTO playlist (email, nomeplaylist, musica) VALUES (?, ?, '')";
     
     try (PreparedStatement resultado = conn.prepareStatement( parametro)) {
@@ -367,7 +384,14 @@ public boolean criarPlaylist(String email, String nomePlaylist) {
 //                   Adicionar a Playlist
 //================================================================
 
-public boolean adicionarMusicaPlaylist(String email, String nomePlaylist, String nomemusica) {
+    /**
+     *
+     * @param email
+     * @param nomePlaylist
+     * @param nomemusica
+     * @return
+     */
+    public boolean adicionarMusicaPlaylist(String email, String nomePlaylist, String nomemusica) {
     String parametro = "INSERT INTO playlist (email, nomeplaylist, musica) VALUES (?, ?, ?)";
     
     try (PreparedStatement onde = conn.prepareStatement(parametro)) {
@@ -386,7 +410,14 @@ public boolean adicionarMusicaPlaylist(String email, String nomePlaylist, String
 //                    Remover da Playlist
 //================================================================
 
-public boolean removerMusicaPlaylist(String email, String nomePlaylist, String musica) {
+    /**
+     *
+     * @param email
+     * @param nomePlaylist
+     * @param musica
+     * @return
+     */
+    public boolean removerMusicaPlaylist(String email, String nomePlaylist, String musica) {
     String parametro = "DELETE FROM playlist WHERE email = ? AND nomeplaylist = ? AND musica = ?";
     
     try (PreparedStatement onde = conn.prepareStatement(parametro)) {
@@ -405,6 +436,12 @@ public boolean removerMusicaPlaylist(String email, String nomePlaylist, String m
 //================================================================
 //                  Listar todas as Playlist
 //================================================================
+
+    /**
+     *
+     * @param email
+     * @return
+     */
 public List<String> listarPlaylistsUsuario(String email) {
     List<String> playlists = new ArrayList<>();
     String parametro = "SELECT DISTINCT nomeplaylist FROM playlist WHERE email = ?";
@@ -425,6 +462,13 @@ public List<String> listarPlaylistsUsuario(String email) {
 //================================================================
 //                Listar Musicas da Playlist
 //================================================================
+
+    /**
+     *
+     * @param email
+     * @param nomePlaylist
+     * @return
+     */
 public List<String> listarMusicasPlaylist(String email, String nomePlaylist) {
     List<String> musicas = new ArrayList<>();
     String parametro = "SELECT musica FROM playlist WHERE email = ? AND nomeplaylist = ? AND musica != ''";
@@ -447,6 +491,14 @@ public List<String> listarMusicasPlaylist(String email, String nomePlaylist) {
 //================================================================
 //                   Renomear Playlist
 //================================================================
+
+    /**
+     *
+     * @param email
+     * @param nomeAtual
+     * @param novoNome
+     * @return
+     */
     public boolean renomearPlaylist(String email, String nomeAtual, String novoNome) {
         String sqlVerifica = "SELECT COUNT(*) FROM playlist WHERE email = ? AND nomeplaylist = ?";
         String sqlAtualiza = "UPDATE playlist SET nomeplaylist = ? WHERE email = ? AND nomeplaylist = ?";
@@ -472,6 +524,12 @@ public List<String> listarMusicasPlaylist(String email, String nomePlaylist) {
 //================================================================
 //                     Remover Playlist
 //================================================================    
+
+    /**
+     *
+     * @param email
+     * @param nomePlaylist
+     */
     public void deletarPlaylist(String email, String nomePlaylist) {
         String parametro = "DELETE FROM playlist WHERE email = ? AND nomeplaylist = ?";
         try (PreparedStatement onde = conn.prepareStatement(parametro)) {
@@ -494,7 +552,12 @@ public List<String> listarMusicasPlaylist(String email, String nomePlaylist) {
 //                  Criar Historico de Musica
 //================================================================ 
     
-public void adicionarMusicaAoHistorico(String email, String musica) {
+    /**
+     *
+     * @param email
+     * @param musica
+     */
+    public void adicionarMusicaAoHistorico(String email, String musica) {
     String parametroBusca = "SELECT ultima FROM ultimasmusicas WHERE email = ?";
     String parametroInsere = "INSERT INTO ultimasmusicas (email, ultima, m1) VALUES (?, 1, ?)";
     
@@ -531,7 +594,12 @@ public void adicionarMusicaAoHistorico(String email, String musica) {
 //                  Listar Historico de Musica
 //================================================================  
 
-public List<String> listarHistoricoMusicas(String email) {
+    /**
+     *
+     * @param email
+     * @return
+     */
+    public List<String> listarHistoricoMusicas(String email) {
     List<String> historico = new ArrayList<>();
     String parametro = "SELECT ultima, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10 FROM ultimasmusicas WHERE email = ?";
     

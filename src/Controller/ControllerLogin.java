@@ -26,15 +26,24 @@ public class ControllerLogin {
         return login.getEmail().getText();
     }
 
+    /**
+     *
+     * @param email
+     */
     public void setEmail(String email) {
         this.email = email;
     }
 
+    /**
+     *
+     * @param login
+     */
     public ControllerLogin(Login login) {
         this.login = login;
         this.ControllerMusica = new ControllerMusica();
     }
     
+  
     public void loginUsuario(){
         ControllerMusica.setEmailatual(getEmail());
         
