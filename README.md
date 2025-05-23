@@ -81,14 +81,7 @@ O projeto Spotifei é uma plataforma de informações de áudios digitais,  apen
 
 ---
 
-## 4. Instruções de Uso
-
-### 4.1. Pré-requisitos
-
-- Java JDK 8 ou superior
-- Banco de dados (MySQL, PostgreSQL, etc.)
-
-## 5. Conclusão
+## 4. Conclusão
 
 Este sistema permite:
 - ✔ Cadastrar e autenticar usuários
